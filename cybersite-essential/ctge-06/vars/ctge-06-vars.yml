@@ -1,0 +1,4 @@
+---
+ssh_key_filename	: id_rsa_tempkey
+www_root		: /var/www/html/
+

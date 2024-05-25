@@ -1,0 +1,5 @@
+#!/bin/bash
+
+TIMESTAMP=$(date +"%T")
+echo "$TIMESTAMP running the archiver"
+cp -rf /usr/local/apache2.4.50/htdocs/ /opt/backups/

@@ -1,0 +1,2 @@
+Our new employee James will be responsible for backups
+I've created him account 'james' and this ftp server for him

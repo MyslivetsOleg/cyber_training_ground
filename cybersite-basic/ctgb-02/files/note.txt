@@ -1,0 +1,3 @@
+TODO!
+Change temprorary password policy
+Current: temp password must contains only 4 letters in range [a,b,c,d] 

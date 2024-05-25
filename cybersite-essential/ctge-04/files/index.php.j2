@@ -1,0 +1,8 @@
+
+<?php
+    	$target = $_GET[ 'ip' ];
+    	exec( "ping -c 4 $target", $output, $status);
+	echo '<pre>';
+	print_r($output);
+	echo '</pre>';
+?>

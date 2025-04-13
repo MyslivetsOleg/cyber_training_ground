@@ -1,0 +1,129 @@
+---
+  - name: Deploy CyberTrainingGround Box 01
+    hosts: sectools-ctge-01
+
+    vars:
+      hostname: sectools-ctge-01
+    vars_files:
+    - vars/ctge-01-vars.yml    
+
+    tasks:
+    - name: Update hostname
+      hostname:
+        name: sectools-ctge-01
+        use: systemd
+      tags:
+      - configuration
+   
+    - name: Update repositories cache and install vsftpd package
+      apt:
+        name: vsftpd
+        update_cache: yes
+      tags:
+      - configuration
+         
+    - name: Update vsftpd conf file
+      copy:
+        src: files/vsftpd.conf
+        dest: /etc/vsftpd.conf
+        owner: root
+        group: root
+        mode: u=rw,g=r,o=r
+      tags:
+      - configuration
+      - foothold
+   
+    - name: Create public FTP directory (/opt/ftp/pub)   
+      file:
+        path: /opt/ftp/pub
+        state: directory      
+      tags:
+      - foothold
+       
+    - name: Restart FTP Service
+      service:
+        name: vsftpd
+        state: restarted
+      tags:
+      - foolhold
+      - configuration
+
+    - name: Copy Foothold File with creds in ftp public dir
+      copy:
+        src: files/backup.txt
+        dest: /opt/ftp/pub/backup.txt
+        owner: root
+        group: root
+        mode: u=rw,g=r,o=r
+      tags:
+      - foothold
+
+    - name: Create Group for James user
+      group:
+        name: james
+        state: present
+      tags:
+      - foothold
+
+    - name: Create user James
+      user:
+        name: james
+        group: james
+        shell: /bin/bash
+        password: "{{ 'rebelde' | password_hash('sha512') }}"
+        state: present
+      tags:
+      - foothold
+
+    - name: Install sudo
+      apt:
+        name: sudo
+        state: present
+      become_user: root
+      tags:
+      - privesc 
+
+    - name: Add appadmin user
+      user:
+        name: appadmin
+        group: sudo
+        shell: /bin/bash
+        password: "{{ 'Lio123zxc' | password_hash('sha512') }}"
+        state: present
+      tags:
+      - adm
+        
+    - name: allow James to run nano as root
+      community.general.sudoers:
+        name: allow nano
+        state: present
+        user: james
+        commands: /usr/bin/nano
+      tags:
+      - privesc
+
+    - name: create user.txt flag
+      shell:
+        cmd: echo "sectools{$(cat /dev/urandom | base64 | head -c 32)}" > user.txt
+        chdir: /home/james/
+      tags:
+      - flags
+
+    - name: change user.txt ownership
+      shell:
+        cmd: chown james:james /home/james/user.txt
+      tags:
+      - flags
+
+    - name: Making /root/ diretory readable for others
+      shell:
+        cmd: chmod o+r /root
+      tags:
+      - flags
+
+    - name: create root.txt flag
+      shell:
+        cmd: echo "sectools{$(cat /dev/urandom | base64 | head -c 32)}" > root.txt
+        chdir: /root/
+      tags:
+      - flag
